@@ -3,9 +3,9 @@ package webhook
 import (
 	"net/http"
 
-	"github.com/in-toto/go-witness/dsse"
+	"github.com/in-toto/go-witness/attestation"
 )
 
 type Handler interface {
-	HandleRequest(*http.Request) (dsse.Envelope, error)
+	HandleRequest(*http.Request) (attestation.Attestor, error)
 }

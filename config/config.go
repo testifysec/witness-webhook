@@ -8,21 +8,21 @@ import (
 )
 
 type Config struct {
-	WebhookConfigs map[string]WebhookConfig
-	ArchivistaUrl  string
+	Webhooks      map[string]WebhookConfig `yaml:"webhooks"`
+	ArchivistaUrl string                   `yaml:"archivistaUrl"`
 }
 
 type WebhookConfig struct {
-	Type         string
-	Signer       string
-	SignerConfig map[string]any
-	Options      map[string]any
+	Type          string         `yaml:"type"`
+	Signer        string         `yaml:"signer"`
+	SignerOptions map[string]any `yaml:"signerOptions"`
+	Options       map[string]any `yaml:"options"`
 }
 
 func New(filePath string) (Config, error) {
 	configBytes, err := os.ReadFile(filePath)
 	if err != nil {
-		return Config{}, nil
+		return Config{}, fmt.Errorf("could not read config file: %w", err)
 	}
 
 	config := Config{}

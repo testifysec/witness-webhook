@@ -14,6 +14,10 @@ func RegistryEntries() []registry.Entry[Handler] {
 	return webhookRegistry.AllEntries()
 }
 
-func NewSignerProvider(name string, opts ...func(Handler) (Handler, error)) (Handler, error) {
+func NewWebhookHandler(name string, opts ...func(Handler) (Handler, error)) (Handler, error) {
 	return webhookRegistry.NewEntity(name, opts...)
+}
+
+func NewWebhookHandlerFromConfigMap(name string, configMap map[string]any) (Handler, error) {
+	return webhookRegistry.NewEntityFromConfigMap(name, configMap)
 }

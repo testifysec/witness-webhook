@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/in-toto/go-witness/cryptoutil"
 	"github.com/in-toto/go-witness/registry"
 	"github.com/testifysec/witness-webhook/webhook"
 )
@@ -25,10 +24,7 @@ func init() {
 					return h, fmt.Errorf("received webhook handler is not a github handler")
 				}
 
-				if err := WithSecretFile(val)(githubHandler); err != nil {
-					return h, fmt.Errorf("could not set github secret file: %w", err)
-				}
-
+				WithSecretFile(val)(githubHandler)
 				return githubHandler, nil
 			},
 		),
@@ -39,19 +35,16 @@ type Option func(*Handler) error
 
 func WithSecretFile(secretFilePath string) Option {
 	return func(h *Handler) error {
-		secretBytes, err := os.ReadFile(secretFilePath)
-		if err != nil {
-			return fmt.Errorf("could not load github secret from file: %w", err)
+		if len(secretFilePath) == 0 {
+			return nil
 		}
 
-		h.secret = secretBytes
-		return nil
-	}
-}
+		secret, err := os.ReadFile(secretFilePath)
+		if err != nil {
+			return fmt.Errorf("could not read webhook secret from file: %w", err)
+		}
 
-func WithSigner(signer cryptoutil.Signer) Option {
-	return func(h *Handler) error {
-		h.signer = signer
+		h.secret = secret
 		return nil
 	}
 }
