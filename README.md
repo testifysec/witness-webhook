@@ -1,10 +1,10 @@
 # Witness Webhook
 
-Witness Webhook is a service that will listen for webhook and create signed attestations from them.
+Witness Webhook is a service that will listen for webhooks and create signed attestations from them.
 
 ## Configuring
 
-Witness Webhook is configured primarily through a YAML file, with aFew environment variables.
+Witness Webhook is configured primarily through a YAML file, with a few environment variables.
 
 ### Environment Variables
 
