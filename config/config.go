@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Webhooks      map[string]WebhookConfig `yaml:"webhooks"`
-	ArchivistaUrl string                   `yaml:"archivistaUrl"`
+	Webhooks             map[string]WebhookConfig `yaml:"webhooks"`
+	ArchivistaUrl        string                   `yaml:"archivistaUrl"`
+	AttestationDirectory string                   `yaml:"attestationDirectory"`
 }
 
 type WebhookConfig struct {

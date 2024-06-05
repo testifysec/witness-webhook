@@ -2,9 +2,13 @@ package server
 
 import (
 	"context"
+	"crypto"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -12,6 +16,7 @@ import (
 	"github.com/in-toto/go-witness/archivista"
 	"github.com/in-toto/go-witness/attestation"
 	"github.com/in-toto/go-witness/cryptoutil"
+	"github.com/in-toto/go-witness/dsse"
 	"github.com/in-toto/go-witness/registry"
 	"github.com/in-toto/go-witness/signer"
 	"github.com/in-toto/go-witness/signer/kms"
@@ -21,6 +26,7 @@ import (
 
 type Server struct {
 	r                *mux.Router
+	attestationDir   string
 	archivistaClient *archivista.Client
 }
 
@@ -31,6 +37,14 @@ func New(ctx context.Context, config config.Config) (Server, error) {
 
 	if len(config.ArchivistaUrl) > 0 {
 		s.archivistaClient = archivista.New(config.ArchivistaUrl)
+	}
+
+	if len(config.AttestationDirectory) > 0 {
+		if err := canWriteToDirectory(config.AttestationDirectory); err != nil {
+			return s, fmt.Errorf("could not write to attestation directory: %w", err)
+		}
+
+		s.attestationDir = config.AttestationDirectory
 	}
 
 	for name, webhookConfig := range config.Webhooks {
@@ -118,6 +132,18 @@ func (s Server) createHttpHandler(name string, h webhook.Handler, signer cryptou
 				log.Printf("attestation stored in archivista for webhook %v with gitoid %v\n", name, gitoid)
 			}
 		}
+
+		if len(s.attestationDir) > 0 {
+			filePath, err := writeAttestationToDisk(results[0].SignedEnvelope, s.attestationDir)
+			if err != nil {
+				log.Printf("could not write attestation to disk: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			log.Printf("attestation written to %v\n", filePath)
+		}
+
 	}, nil
 }
 
@@ -154,4 +180,40 @@ func applyKmsSettings(sp signer.SignerProvider, signerConfig map[string]any) err
 	}
 
 	return nil
+}
+
+func canWriteToDirectory(dir string) error {
+	f, err := os.CreateTemp(dir, "")
+	if err != nil {
+		return fmt.Errorf("error creating test file: %w", err)
+	}
+
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("error writing test file: %w", err)
+	}
+
+	if err := os.Remove(f.Name()); err != nil {
+		return fmt.Errorf("error removing test file: %w", err)
+	}
+
+	return nil
+}
+
+func writeAttestationToDisk(env dsse.Envelope, dir string) (string, error) {
+	envBytes, err := json.Marshal(env)
+	if err != nil {
+		return "", fmt.Errorf("could not marshal attestation to json: %w", err)
+	}
+
+	ds, err := cryptoutil.CalculateDigestSetFromBytes(envBytes, []cryptoutil.DigestValue{{Hash: crypto.SHA256, GitOID: true}})
+	if err != nil {
+		return "", fmt.Errorf("could not calculate gitoid of envelope: %w", err)
+	}
+
+	filePath := filepath.Join(dir, strings.TrimPrefix(fmt.Sprintf("%v.json", ds[cryptoutil.DigestValue{Hash: crypto.SHA256, GitOID: true}]), "gitoid:blob:sha256:"))
+	if err := os.WriteFile(filePath, envBytes, 0644); err != nil {
+		return "", fmt.Errorf("could not write attestation to file: %w", err)
+	}
+
+	return filePath, nil
 }

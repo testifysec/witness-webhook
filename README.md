@@ -19,6 +19,7 @@ A sample config file follows:
 
 ```yaml
 archivistaUrl: https://archivista.localhost
+attestationDirectory: /tmp
 webhooks:
   webhook1:
     type: github
@@ -32,7 +33,7 @@ webhooks:
 
 This config defines one webhook named `webhook1`. The server will listen for webhooks from Github at `http://host:8085/webhook/webhook1`. Attestations from this webhook will be signed by a KMS signer that points to a Vault transit key named `testkey`.
 
-Signed attestations will be pushed to an Archivista instance at `https://archivista.localhost`
+Signed attestations will be pushed to an Archivista instance at `https://archivista.localhost`. They will also be stored on disk at `/tmp`. If `archivistaUrl` or `attestationDirectory` are left blank, witness-webhook will not attempt to output attestations to the respective destinations.
 
 For a list of available signers, take a look at the signers provided by [go-witness](https://github.com/in-toto/go-witness). All options in `signerOptions` will be forwarded to the specified signer provider. This section will be updated to include the available signers and options soon.
 
