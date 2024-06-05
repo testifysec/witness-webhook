@@ -86,6 +86,11 @@ func (s Server) createHttpHandler(name string, h webhook.Handler, signer cryptou
 			return
 		}
 
+		if attestor == nil {
+			log.Printf("no attestor returned for webhook %v, skipping event", name)
+			return
+		}
+
 		results, err := witness.RunWithExports(
 			"webhook",
 			witness.RunWithAttestors([]attestation.Attestor{attestor}),

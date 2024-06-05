@@ -224,6 +224,8 @@ github.com/in-toto/attestation v1.0.2 h1:ICqV41bfaDC3ixVUzAtFxFu+Dy56EPcjiIrJQe+
 github.com/in-toto/attestation v1.0.2/go.mod h1:3uRayZSKuCHDDZOxLm5UfYulqqd1L1NdzYvxX/jyZEM=
 github.com/in-toto/go-witness v0.4.1-0.20240604030233-2131cf28e35b h1:Ngob8gbeAtgcoPD0cVjxKYh5dcF9RhLaUhMhXIbnB4o=
 github.com/in-toto/go-witness v0.4.1-0.20240604030233-2131cf28e35b/go.mod h1:ectm6Kg37Xiuse7utmwrNHpl981/JIUpAnqHDP3kgqg=
+github.com/in-toto/go-witness v0.4.1-0.20240605021509-d7bc248de9e1 h1:68VlEXvOOyh0JPrDWNoQYqekQsjRwtPda8K3nnW6hsU=
+github.com/in-toto/go-witness v0.4.1-0.20240605021509-d7bc248de9e1/go.mod h1:ectm6Kg37Xiuse7utmwrNHpl981/JIUpAnqHDP3kgqg=
 github.com/invopop/jsonschema v0.12.0 h1:6ovsNSuvn9wEQVOyc72aycBMVQFKz7cPdMJn10CvzRI=
 github.com/invopop/jsonschema v0.12.0/go.mod h1:ffZ5Km5SWWRAIN6wbDXItl95euhFz2uON45H2qjYt+0=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=

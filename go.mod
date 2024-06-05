@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/in-toto/go-witness v0.4.1-0.20240604030233-2131cf28e35b
+	github.com/in-toto/go-witness v0.4.1-0.20240605021509-d7bc248de9e1
 	gopkg.in/yaml.v3 v3.0.1
 )
 

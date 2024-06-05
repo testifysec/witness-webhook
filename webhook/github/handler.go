@@ -24,6 +24,11 @@ func New(opts ...Option) (webhook.Handler, error) {
 }
 
 func (h *Handler) HandleRequest(req *http.Request) (attestation.Attestor, error) {
+	event := req.Header.Get("X-Github-Event")
+	if event == "ping" {
+		return nil, nil
+	}
+
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		return nil, fmt.Errorf("could not read request body: %w", err)
@@ -33,6 +38,7 @@ func (h *Handler) HandleRequest(req *http.Request) (attestation.Attestor, error)
 		githubwebhook.WithBody(body),
 		githubwebhook.WithRecievedSignature(req.Header.Get("X-Hub-Signature-256")),
 		githubwebhook.WithSecret(h.secret),
+		githubwebhook.WithEvent(event),
 	), nil
 
 }
