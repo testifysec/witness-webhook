@@ -90,7 +90,7 @@ func New(ctx context.Context, config config.Config) (Server, error) {
 			return s, fmt.Errorf("could not create handler func for webhook %v: %w", name, err)
 		}
 
-		s.r.HandleFunc(fmt.Sprintf("/%v", name), handlerFunc)
+		s.r.HandleFunc(fmt.Sprintf("/%v", name), handlerFunc).Methods("POST")
 	}
 
 	return s, nil

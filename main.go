@@ -62,6 +62,7 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/debug").Handler(http.DefaultServeMux)
 	r.PathPrefix("/webhook").Handler(http.StripPrefix("/webhook", s))
+	r.Path("/ready").HandlerFunc(readyHandler)
 
 	srv := &http.Server{
 		Addr:    listenAddr,
@@ -84,4 +85,9 @@ func main() {
 	defer cancel()
 	srv.Shutdown(ctx)
 	log.Println("shutting down")
+}
+
+// for now this just writes 200 back to show the server is up and listening
+func readyHandler(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
