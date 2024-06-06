@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "witness-webhook.fullname" . }}
+  labels:
+    {{- include "witness-webhook.labels" . | nindent 4 }}
+data:
+  webhook-config.yaml: |
+    {{- toYaml .Values.witnesswebhook | nindent 4 }}
