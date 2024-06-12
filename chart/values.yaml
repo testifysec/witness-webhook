@@ -105,6 +105,8 @@ tolerations: []
 
 affinity: {}
 
+env:
+
 # witness webhook application specific config
 # see README.md section on the YAML config for values here.
 witnesswebhook:
