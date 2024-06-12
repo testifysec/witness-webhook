@@ -83,7 +83,10 @@ func main() {
 	log.Println("caught interrupt, waiting for requests to finish...")
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	srv.Shutdown(ctx)
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("error shutting down server: %v", err)
+	}
+
 	log.Println("shutting down")
 }
 
