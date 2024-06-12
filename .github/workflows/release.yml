@@ -1,0 +1,142 @@
+# Copyright 2022 The Witness Contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: release
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "docs-site/**"
+
+permissions:
+  contents: read  # This is required for actions/checkout
+
+
+jobs:
+  fmt:
+    uses: ./.github/workflows/witness.yml
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read
+    with:
+      pull_request: ${{ github.event_name == 'pull_request' }}
+      step: fmt
+      attestations: "git github environment"
+      command: go fmt ./...
+
+  sast:
+    needs: [fmt]
+    uses: ./.github/workflows/witness.yml
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read
+    with:
+      pull_request: ${{ github.event_name == 'pull_request' }}
+      step: sast
+      attestations: "git github environment"
+      command: go vet ./...
+
+  unit-test:
+    needs: [fmt]
+    uses: ./.github/workflows/witness.yml
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read
+    with:
+      pull_request: ${{ github.event_name == 'pull_request' }}
+      step: unit-test
+      attestations: "git github environment"
+      command: go test -v -coverprofile=profile.cov -covermode=atomic ./...
+      artifact-upload-name: profile.cov
+      artifact-upload-path: profile.cov
+
+  release:
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    needs: [sast, unit-test]
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version: 1.21.x
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@e8d2a6937ecead383dfe75190d104edd1f9c5751 # v0.16.0
+
+      - name: Download GoReleaser
+        run: go install github.com/goreleaser/goreleaser@v1.23.0
+
+      - name: Run GoReleaser
+        uses: testifysec/witness-run-action@2ae7f93c013ccf24b8ff52b4f042b32ca95ec7b8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        with:
+          step: "build"
+          attestations: "github"
+          command: goreleaser release --clean
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Install YQ
+        uses: dcarbone/install-yq-action@v1.1.1
+
+      - name: Package Helm Chart
+        run: |
+          cd chart/
+          yq e -i '.appVersion="'"${GITHUB_REF_NAME#v}"'"' Chart.yaml
+          helm package .
+          mv witness-webhook-*.tar.gz witness-webhook-chart.tar.gz
+
+      - name: Upload Helm Chart
+        uses: softprops/action-gh-release@v2
+        with:
+          files: charts/witness-webhook-chart.tgz
