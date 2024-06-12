@@ -15,6 +15,7 @@
 package github
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,8 +31,15 @@ type Handler struct {
 
 func New(opts ...Option) (webhook.Handler, error) {
 	h := &Handler{}
+	errs := make([]error, 0)
 	for _, opt := range opts {
-		opt(h)
+		if err := opt(h); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return h, fmt.Errorf("could not create github webhook hanlder: %w", errors.Join(errs...))
 	}
 
 	return h, nil

@@ -38,8 +38,8 @@ func init() {
 					return h, fmt.Errorf("received webhook handler is not a github handler")
 				}
 
-				WithSecretFile(val)(githubHandler)
-				return githubHandler, nil
+				err := WithSecretFile(val)(githubHandler)
+				return githubHandler, err
 			},
 		),
 	)
