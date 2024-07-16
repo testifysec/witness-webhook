@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
@@ -38,6 +39,7 @@ const (
 	defaultListenAddr = ":8085"
 	listenAddrEnvVar  = "WITNESS_WEBHOOK_LISTEN_ADDR"
 	enableTLSEnvVar   = "WITNESS_WEBHOOK_ENABLE_TLS"
+	tlsSkipVerifyVar  = "WITNESS_WEBHOOK_TLS_SKIP_VERIFY"
 	tlsCertEnvVar     = "WITNESS_WEBHOOK_TLS_CERT"
 	tlsKeyEnvVar      = "WITNESS_WEBHOOK_TLS_KEY"
 )
@@ -73,8 +75,14 @@ func main() {
 		Handler: r,
 	}
 
+	tlsEnabled := strings.TrimSpace(strings.ToLower(os.Getenv(enableTLSEnvVar))) == "true"
+	tlsSkipVerify := strings.TrimSpace(strings.ToLower(os.Getenv(tlsSkipVerifyVar))) == "true"
+	if tlsEnabled && tlsSkipVerify {
+		log.Println("enabling InsecureSkipVerify for TLS. DO NOT ENABLE IN PRODUCTION")
+		srv.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
 	go func() {
-		tlsEnabled := strings.TrimSpace(strings.ToLower(os.Getenv(enableTLSEnvVar))) == "true"
 		if tlsEnabled {
 			log.Printf("listening with TLS on %v\n", listenAddr)
 			if err := srv.ListenAndServeTLS(os.Getenv(tlsCertEnvVar), os.Getenv(tlsKeyEnvVar)); err != nil {
