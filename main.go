@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -36,6 +37,9 @@ const (
 	configPathEnvVar  = "WITNESS_WEBHOOK_CONFIG_PATH"
 	defaultListenAddr = ":8085"
 	listenAddrEnvVar  = "WITNESS_WEBHOOK_LISTEN_ADDR"
+	enableTLSEnvVar   = "WITNESS_WEBHOOK_ENABLE_TLS"
+	tlsCertEnvVar     = "WITNESS_WEBHOOK_TLS_CERT"
+	tlsKeyEnvVar      = "WITNESS_WEBHOOK_TLS_KEY"
 )
 
 func main() {
@@ -51,7 +55,7 @@ func main() {
 
 	s, err := server.New(context.Background(), config)
 	if err != nil {
-		log.Fatalf("filed to start webhook server: %v\n", err)
+		log.Fatalf("failed to start webhook server: %v\n", err)
 	}
 
 	listenAddr := os.Getenv(listenAddrEnvVar)
@@ -70,9 +74,17 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("listening on %v\n", listenAddr)
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+		tlsEnabled := strings.TrimSpace(strings.ToLower(os.Getenv(enableTLSEnvVar))) == "true"
+		if tlsEnabled {
+			log.Printf("listening with TLS on %v\n", listenAddr)
+			if err := srv.ListenAndServeTLS(os.Getenv(tlsCertEnvVar), os.Getenv(tlsKeyEnvVar)); err != nil {
+				log.Println(err)
+			}
+		} else {
+			log.Printf("listening on %v\n", listenAddr)
+			if err := srv.ListenAndServe(); err != nil {
+				log.Println(err)
+			}
 		}
 	}()
 
