@@ -12,6 +12,9 @@ Witness Webhook is configured primarily through a YAML file, with a few environm
 | -------- | ------- | ----------- |
 | `WITNESS_WEBHOOK_CONFIG_PATH` | `/webhook-config.yaml` | The path to the yaml config file |
 | `WITNESS_WEBHOOK_LISTEN_ADDR` | `:8085` | The address the server will listen on |
+| `WITNESS_WEBHOOK_ENABLE_TLS`  | `false` | If true, witness-webhook will listen with TLS enabled |
+| `WITNESS_WEBHOOK_TLS_CERT`    | ` ` | Path to the TLS certificate to use |
+| `WITNESS_WEBHOOK_TLS_KEY`     | ` ` | Path to the TLS key to use |
 
 ### YAML Config
 
