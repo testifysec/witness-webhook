@@ -15,6 +15,7 @@ Witness Webhook is configured primarily through a YAML file, with a few environm
 | `WITNESS_WEBHOOK_ENABLE_TLS`  | `false` | If true, witness-webhook will listen with TLS enabled |
 | `WITNESS_WEBHOOK_TLS_CERT`    | ` ` | Path to the TLS certificate to use |
 | `WITNESS_WEBHOOK_TLS_KEY`     | ` ` | Path to the TLS key to use |
+| `WITNESS_WEBHOOK_TLS_SKIP_VERIFY`     | `false` | If true, disables certificate and host name verification when establishing TLS connections. DO NOT RUN IN PRODUCTION. |
 
 ### YAML Config
 
