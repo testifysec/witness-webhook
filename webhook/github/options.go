@@ -15,6 +15,7 @@
 package github
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -53,12 +54,20 @@ func WithSecretFile(secretFilePath string) Option {
 			return nil
 		}
 
-		secret, err := os.ReadFile(secretFilePath)
+		file, err := os.Open(secretFilePath)
 		if err != nil {
+			return fmt.Errorf("could not open webhook secret file: %w", err)
+		}
+
+		defer file.Close()
+		scanner := bufio.NewScanner(file)
+		if !scanner.Scan() {
+			return fmt.Errorf("could not read webhook secret from file")
+		} else if err := scanner.Err(); err != nil {
 			return fmt.Errorf("could not read webhook secret from file: %w", err)
 		}
 
-		h.secret = secret
+		h.secret = []byte(scanner.Text())
 		return nil
 	}
 }
