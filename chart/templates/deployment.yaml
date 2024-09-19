@@ -41,6 +41,9 @@ spec:
               value: /etc/witness-webhook/webhook-config.yaml
             - name: "WITNESS_WEBHOOK_LISTEN_ADDR"
               value: ":{{ .Values.service.port }}"
+            {{- with .Values.env }}
+              {{- toYaml . | nindent 12}}
+            {{- end}}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
