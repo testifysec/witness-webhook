@@ -1,0 +1,35 @@
+serviceAccount:
+  create: false
+  name: "witness-webhook"
+
+volumes:
+  - name: githubwebhooksecret
+    secret:
+      secretName: githubwebhooksecret
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+  - name: githubwebhooksecret
+    mountPath: /etc/githubwebhooksecret
+    readonly: true
+
+env:
+  - name: VAULT_NAMESPACE
+    value: ADMIN
+
+# witness webhook application specific config
+# see README.md section on the YAML config for values here.
+witnesswebhook:
+  archivistaUrl: https://archivista.testifysec.io
+  webhooks:
+    github:
+      type: "github"
+      signer: "kms"
+      signerOptions:
+        ref: "hashivault://testkey"
+        hashivault-addr: http://192.168.65.254:8200
+        hashivault-auth-method: kubernetes
+        hashivault-auth-mount-path: kubernetes
+        hashivault-role: witness-webhook
+      options:
+        secret-file-path: "/etc/githubwebhooksecret/githubsecret"

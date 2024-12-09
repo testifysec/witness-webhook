@@ -21,4 +21,4 @@ jobs:
       - name: Check license headers
         run: |
           set -e
-          addlicense --check -l apache -c 'The Witness Contributors' --ignore "chart/**" -v *
+          addlicense --check -l apache -c 'The Witness Contributors' --ignore "chart/**" --ignore "docs/example-vault/**" -v *
